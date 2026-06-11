@@ -7,78 +7,82 @@
 // - multiplication (multiply, *, x)
 // - division (divide, /)
 //
-// Usage examples:
-//   node src/calculator.js add 2 3
-//   node src/calculator.js + 2 3
-//   node src/calculator.js multiply 4 5
-//
-// Exits with code 0 on success, non-zero on error.
+// This file exports the core functions for testing and also provides a
+// small CLI wrapper when executed directly.
 
-function showUsage() {
-  console.error('Usage: node src/calculator.js <operation> <a> <b>');
-  console.error('Operations: add (+), subtract (-), multiply (*), divide (/)');
-  process.exit(1);
+// Core arithmetic functions
+function add(a, b) {
+  return a + b;
 }
 
-const [, , op, aStr, bStr] = process.argv;
-
-if (!op || !aStr || !bStr) showUsage();
-
-function toNumber(s) {
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
+function subtract(a, b) {
+  return a - b;
 }
 
-const a = toNumber(aStr);
-const b = toNumber(bStr);
-
-if (a === null || b === null) {
-  console.error('Error: both operands must be valid numbers');
-  showUsage();
+function multiply(a, b) {
+  return a * b;
 }
 
-let result;
-const operation = op.toString().toLowerCase();
+function divide(a, b) {
+  if (b === 0) throw new Error('Division by zero');
+  return a / b;
+}
 
-switch (operation) {
-  // Addition
-  case 'add':
-  case '+':
-  case 'plus':
-    result = a + b;
-    break;
+// Export functions for unit testing
+module.exports = { add, subtract, multiply, divide };
 
-  // Subtraction
-  case 'subtract':
-  case '-':
-  case 'minus':
-    result = a - b;
-    break;
+// CLI wrapper: only run when executed directly
+if (require.main === module) {
+  function showUsage() {
+    console.error('Usage: node src/calculator.js <operation> <a> <b>');
+    console.error('Operations: add (+), subtract (-), multiply (*), divide (/)');
+    process.exit(1);
+  }
 
-  // Multiplication
-  case 'multiply':
-  case '*':
-  case 'x':
-  case 'times':
-    result = a * b;
-    break;
+  const [, , op, aStr, bStr] = process.argv;
+  if (!op || !aStr || !bStr) showUsage();
 
-  // Division
-  case 'divide':
-  case '/':
-  case '÷':
-    if (b === 0) {
-      console.error('Error: division by zero');
-      process.exit(2);
-    }
-    result = a / b;
-    break;
-
-  default:
-    console.error(`Unknown operation: ${op}`);
+  const a = Number(aStr);
+  const b = Number(bStr);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) {
+    console.error('Error: both operands must be valid numbers');
     showUsage();
-}
+  }
 
-// Print the result (no extra formatting to keep CLI small and scriptable)
-console.log(result);
-process.exit(0);
+  const operation = op.toString().toLowerCase();
+  try {
+    let result;
+    switch (operation) {
+      case 'add':
+      case '+':
+      case 'plus':
+        result = add(a, b);
+        break;
+      case 'subtract':
+      case '-':
+      case 'minus':
+        result = subtract(a, b);
+        break;
+      case 'multiply':
+      case '*':
+      case 'x':
+      case 'times':
+        result = multiply(a, b);
+        break;
+      case 'divide':
+      case '/':
+      case '÷':
+        result = divide(a, b);
+        break;
+      default:
+        console.error(`Unknown operation: ${op}`);
+        showUsage();
+    }
+
+    console.log(result);
+    process.exit(0);
+  } catch (err) {
+    console.error('Error:', err.message);
+    process.exit(2);
+  }
+}
